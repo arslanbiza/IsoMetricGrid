@@ -7,6 +7,11 @@ public class GridGenerator : MonoBehaviour
 {
     public GameObject verticalTablePrefab;
     public GameObject horizontalTablePrefab;
+
+    private GameObject selectedTable; // Selected table instance
+    private GameObject clonedTable; // Cloned table instance
+    private bool isPlacingTable; // Indicates if the player is currently placing a table
+
     public GameObject tilePrefab;
     public Sprite[] textures; // Array to hold the textures
     public float tileSize;
@@ -54,7 +59,7 @@ public class GridGenerator : MonoBehaviour
 
     void Update()
     {
-        // Check for mouse click
+        // Check for mouse down event
         if (Input.GetMouseButtonDown(0))
         {
             RaycastHit hit;
@@ -62,70 +67,97 @@ public class GridGenerator : MonoBehaviour
 
             if (Physics.Raycast(ray, out hit))
             {
-                Vector3 position = hit.point;
-                int x = Mathf.RoundToInt(position.x);
-                int z = Mathf.RoundToInt(position.z);
-
-                // Check if the clicked position is a valid location for the table
-                if (IsValidTableLocation(x, z))
+                // Check if the clicked object is a table
+                if (hit.collider.gameObject.CompareTag("Table"))
                 {
-                    // Spawn the appropriate table at the clicked position
-                    if (IsValidVerticalTableLocation(x, z))
+                    // Store the selected table
+                    selectedTable = hit.collider.gameObject;
+
+                    // Create a clone of the selected table
+                    clonedTable = Instantiate(selectedTable);
+                    isPlacingTable = true;
+                }
+            }
+        }
+
+        // Check if the player is currently placing a table
+        if (isPlacingTable && clonedTable != null)
+        {
+            // Move the cloned table with the cursor
+            MoveClonedTableWithCursor();
+
+            // Check for mouse up event
+            if (Input.GetMouseButtonUp(0))
+            {
+                RaycastHit hit;
+                Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+
+                if (Physics.Raycast(ray, out hit))
+                {
+                    Vector3 position = hit.point;
+                    int x = Mathf.RoundToInt(position.x);
+                    int z = Mathf.RoundToInt(position.z);
+
+                    // Check if the location is valid for placing the cloned table
+                    if (IsValidTableLocation(x, z))
                     {
-                        GameObject table = Instantiate(verticalTablePrefab, new Vector3(x, 0.073f, z+ 1.047f),Quaternion.EulerRotation(0,45,0) );
-                        MarkTilesAsTable(x, z);
+                        // Place the cloned table at the valid location
+                        PlaceClonedTable(x, z);
                     }
-                    else if (IsValidHorizontalTableLocation(x, z))
+                    else
                     {
-                        GameObject table = Instantiate(horizontalTablePrefab, new Vector3(x, 0.073f, z+1.047f), Quaternion.EulerRotation(0, 45, 0));
-                        MarkTilesAsTable(x, z);
+                        Debug.LogError("Invalid location for placing the table.");
+
+                        // Destroy the cloned table as the location is invalid
+                        Destroy(clonedTable);
                     }
                 }
+
+                // Reset table placement state
+                isPlacingTable = false;
+                selectedTable = null;
+                clonedTable = null;
             }
         }
     }
 
     bool IsValidTableLocation(int x, int z)
     {
-        // Check if the clicked position is within the bounds of the grid
-        if (x >= 0 && x < terrainGridData.TerrainGrid.Count &&
-            z >= 0 && z < terrainGridData.TerrainGrid[x].Count)
+        // Check if the clicked position is within the bounds of the grid and not occupied by another table
+        return x >= 0 && x < terrainGridData.TerrainGrid.Count &&
+               z >= 0 && z < terrainGridData.TerrainGrid[x].Count &&
+               !terrainGridData.TerrainGrid[x][z].HasTable;
+    }
+
+    void MoveClonedTableWithCursor()
+    {
+        if (clonedTable != null)
         {
-            // Check if the tile at the clicked position is not occupied by a table
-            if (!terrainGridData.TerrainGrid[x][z].HasTable)
+            RaycastHit hit;
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+
+            if (Physics.Raycast(ray, out hit))
             {
-                return true;
+                // Move the cloned table to the mouse cursor's position
+                clonedTable.transform.position = hit.point;
             }
         }
-        return false;
     }
 
-    bool IsValidVerticalTableLocation(int x, int z)
+    void PlaceClonedTable(int x, int z)
     {
-        // Check if there is space for a vertical table (requires two tiles)
-        return IsValidTableLocation(x, z) && IsValidTableLocation(x, z + 1);
-    }
+        // Instantiate the appropriate table at the valid location
+        GameObject table = Instantiate(clonedTable, new Vector3(x, 0, z), clonedTable.transform.rotation);
 
-    bool IsValidHorizontalTableLocation(int x, int z)
-    {
-        // Check if there is space for a horizontal table (requires two tiles)
-        return IsValidTableLocation(x, z) && IsValidTableLocation(x + 1, z);
+        // Mark the tiles at the valid location and its adjacent positions as having a table
+        MarkTilesAsTable(x, z);
     }
 
     void MarkTilesAsTable(int x, int z)
     {
-        // Mark the tiles at the clicked position and its adjacent position as having a table
+        // Mark the tiles at the valid location and its adjacent positions as having a table
         terrainGridData.TerrainGrid[x][z].HasTable = true;
-        if (IsValidTableLocation(x, z + 1))
-        {
-            terrainGridData.TerrainGrid[x][z + 1].HasTable = true;
-        }
-        if (IsValidTableLocation(x + 1, z))
-        {
-            terrainGridData.TerrainGrid[x + 1][z].HasTable = true;
-        }
     }
-
 }
 
 
