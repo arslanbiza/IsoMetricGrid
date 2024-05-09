@@ -152,6 +152,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8037ef516bc71f74480cf571d3dc6879, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  verticalTablePrefab: {fileID: 2530943150267498856, guid: 525801dcf65ac1542bb597ebed0beed8, type: 3}
+  horizontalTablePrefab: {fileID: 8262090573435564759, guid: d5facc7671044a4438452a64a8a49bba, type: 3}
   tilePrefab: {fileID: 1916446913852598229, guid: 55c9e0bb2f6914e4f9ac7054a2854a1d, type: 3}
   textures:
   - {fileID: 21300000, guid: 1098c86e2e081964fb93ccbd947d4c30, type: 3}
