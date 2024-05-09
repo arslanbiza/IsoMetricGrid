@@ -27,7 +27,7 @@ public class GridGenerator : MonoBehaviour
         {
             for (int j = 0; j < terrainGridData.TerrainGrid[i].Count; j++)
             {
-                GameObject tile = Instantiate(tilePrefab, new Vector3(tileSize * i, 0, tileSize * j), Quaternion.Euler(90f, 0f, 0f),transform); // Instantiate tile at position
+                Tile tile = Instantiate(tilePrefab, new Vector3(tileSize * i, 0, tileSize * j), Quaternion.Euler(90f, 0f, 0f),transform).GetComponent<Tile>(); // Instantiate tile at position
                 int tileType = terrainGridData.TerrainGrid[i][j].TileType;
                 SpriteRenderer renderer = tile.GetComponent<SpriteRenderer>();
 
@@ -35,6 +35,10 @@ public class GridGenerator : MonoBehaviour
                 if (tileType >= 0 && tileType < textures.Length)
                 {
                     renderer.sprite = textures[tileType];
+                    if (tileType == 3) 
+                    {
+                        tile.SetTileTypeToWood();
+                    }
                     //renderer.material.mainTexture = textures[tileType];
                 }
                 else
