@@ -8,13 +8,7 @@ public class Tile : MonoBehaviour
 
     public TileCategory tileType;
     public bool canPlaceTable;
-    private void OnMouseDown()
-    {
-        if (tileType == TileCategory.Wood) 
-        {
-            
-        }
-    }
+
 
     public void SetTileTypeToWood() 
     {
